@@ -1,0 +1,24 @@
+-- Schema for SGCM
+CREATE DATABASE IF NOT EXISTS sgcm_db;
+USE sgcm_db;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(50) DEFAULT 'patient',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS appointments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  doctor_id INT NOT NULL,
+  patient_id INT NOT NULL,
+  date_time DATETIME NOT NULL,
+  reason TEXT,
+  status VARCHAR(50) DEFAULT 'scheduled',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (doctor_id) REFERENCES users(id),
+  FOREIGN KEY (patient_id) REFERENCES users(id)
+);
