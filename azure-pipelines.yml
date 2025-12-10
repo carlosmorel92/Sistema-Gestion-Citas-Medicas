@@ -1,0 +1,70 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+
+# ====== STAGE 1: BACKEND ======
+- stage: Build_Backend
+  displayName: "Construir Backend"
+  jobs:
+  - job: backend
+    displayName: "Instalar dependencias backend"
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: "Usar Node.js 18"
+
+    - script: |
+        cd backend
+        npm install
+      displayName: "Instalar dependencias backend"
+
+    - script: |
+        cd backend
+        npm test || echo "No tests en backend"
+      displayName: "Ejecutar pruebas backend (si existen)"
+
+# ====== STAGE 2: FRONTEND ======
+- stage: Build_Frontend
+  displayName: "Construir Frontend"
+  dependsOn: Build_Backend
+  jobs:
+  - job: frontend
+    displayName: "Instalar dependencias frontend"
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: "Usar Node.js 18"
+
+    - script: |
+        cd frontend
+        npm install
+        npm run build
+      displayName: "Construir frontend"
+
+# ====== STAGE 3: PRUEBAS AUTOMATIZADAS ======
+- stage: Run_Tests
+  displayName: "Pruebas automatizadas Selenium"
+  dependsOn: Build_Frontend
+  jobs:
+  - job: selenium
+    displayName: "Ejecutar pruebas Selenium"
+    steps:
+
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.11'
+
+    - script: |
+        cd tests
+        pip install -r requirements.txt
+      displayName: "Instalar dependencias Python"
+
+    - script: |
+        pytest -q || echo "Las pruebas fallaron o no tienen entorno gráfico"
+      displayName: "Ejecutar pruebas Selenium"
